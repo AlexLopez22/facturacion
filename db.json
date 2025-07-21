@@ -1,0 +1,39 @@
+{
+  "facturas": [
+    {
+      "items": [
+        {
+          "precioUnitario": 2323,
+          "cantidad": 1,
+          "descripcion": "producto prueba"
+        }
+      ],
+      "razonSocial": "prueba",
+      "ruc": "20600055518",
+      "igv": 418.14,
+      "total": 2741.14,
+      "fecha": "2025-07-16T04:26:43.662Z",
+      "id": "8626"
+    },
+    {
+      "id": "b238",
+      "items": [
+        {
+          "precioUnitario": 2,
+          "cantidad": 2,
+          "descripcion": "2"
+        },
+        {
+          "precioUnitario": 2,
+          "cantidad": 2,
+          "descripcion": "22"
+        }
+      ],
+      "razonSocial": "ee",
+      "ruc": "ww",
+      "igv": 0,
+      "total": 0,
+      "fecha": "2025-07-16T04:19:30.624Z"
+    }
+  ]
+}

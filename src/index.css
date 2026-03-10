@@ -1,6 +1,27 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 .input {
-    @apply w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500;
-  }
+  @apply w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.label {
+  @apply block text-xs font-medium text-slate-600 mb-1;
+}
+
+.input {
+  @apply w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md font-medium shadow-sm;
+}
+
+.btn-secondary {
+  @apply bg-white border border-slate-300 hover:bg-slate-50 px-4 py-2 rounded-md text-sm;
+}
+
+.btn-icon {
+  @apply border border-slate-300 rounded px-2 py-1 h-7 text-xs;
+}

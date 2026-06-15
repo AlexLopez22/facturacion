@@ -1,11 +1,7 @@
-export interface Documento {
-  id: number;
-  tipoComprobante: string;
-  nombre: string;
-}
+import type {  Documento } from "../types";
 
 export async function obtenerDocumentos(): Promise<Documento[]> {
-  const res = await fetch("http://localhost:8080/documentos/listar-Documentos", {
+  const res = await fetch("https://springboot-facturacion-backend-production.up.railway.app/documentos/listar-Documentos", {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },

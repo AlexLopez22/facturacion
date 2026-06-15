@@ -5,7 +5,7 @@ export const listarFormasPago = async () => {
   const token = useUsuarioStore.getState().token;
 
   const res = await axios.get(
-    "http://localhost:8080/formas-pago/listar",
+    "https://springboot-facturacion-backend-production.up.railway.app/formas-pago/listar",
     {
       headers: {
         Authorization: `Bearer ${token}`,

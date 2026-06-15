@@ -19,7 +19,7 @@ export default function ModalProductos({ onClose, onSelectProductos, token }: Pr
             return;
         }
 
-        axios.get("http://localhost:8080/products/list-product", {
+        axios.get("https://springboot-facturacion-backend-production.up.railway.app/products/list-product", {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(res => {

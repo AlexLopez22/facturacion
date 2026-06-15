@@ -1,7 +1,7 @@
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 
 export const crearProducto = async (producto: any) => {
-  const response = await fetchWithAuth("http://localhost:8080/products/create-product", {
+  const response = await fetchWithAuth("https://springboot-facturacion-backend-production.up.railway.app/products/create-product", {
     method: "POST",
     body: JSON.stringify(producto),
   });
@@ -14,14 +14,14 @@ export const crearProducto = async (producto: any) => {
 };
 
 export const obtenerProductos = async () => {
-  const response = await fetchWithAuth("http://localhost:8080/products/list-product", {
+  const response = await fetchWithAuth("https://springboot-facturacion-backend-production.up.railway.app/products/list-product", {
     method: "GET",
   });
   return response.json();
 };
 
 export const eliminarProducto = async (id: number) => {
-  const response = await fetchWithAuth(`http://localhost:8080/products/list-product/${id}`, {
+  const response = await fetchWithAuth(`https://springboot-facturacion-backend-production.up.railway.app/products/list-product/${id}`, {
     method: "DELETE",
   });
   return response.json();

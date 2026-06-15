@@ -2,23 +2,24 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import ModalClientes from "./ModalClientes";
 import { obtenerDocumentos } from "../servicios/documentos";
-import type { Documento } from "../servicios/documentos";
 import { Controller } from "react-hook-form";
 import { useUsuarioStore } from "../store/usuarioStore";
 import ModalProductos from "./ModalProductos";
-import type { Producto, Cliente, FormaPago, FacturaForm } from "../types";
+import type { Producto, Cliente, FormaPago, FacturaForm, Documento, Cuota} from "../types";
 import type { FieldError } from "react-hook-form"
 import { useFacturaTotales } from "../hooks/useFacturaTotales";
 import { useFacturaForm } from "../hooks/useFacturaForm";
 import { useFieldArray } from "react-hook-form";
 import { validarSerie } from "../servicios/SerieService";
+import { CheckIcon } from "@heroicons/react/24/solid";
+import ModalCuotas from "../componentes/ModalCuotas";
 
 interface Props {
     onAfterSave?: () => void;
-    facturaParaEditar?: Record<string, unknown>;
+    documentos: Documento[];
 }
 
-export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Props) {
+export default function FormularioFactura({ onAfterSave }: Props) {
 
     const [formasPago, setFormasPago] = useState<FormaPago[]>([]);
     const [documentos, setDocumentos] = useState<Documento[]>([]);
@@ -27,6 +28,11 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
     const [mostrarModalProductos, setMostrarModalProductos] = useState(false);
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
     const [filaSeleccionada, setFilaSeleccionada] = useState<number | null>(null);
+    const [mostrarModalCuotas, setMostrarModalCuotas] = useState(false);
+    const [cuotas, setCuotas] = useState<Cuota[]>([]);
+
+
+
 
     const handleSelectProductos = (productos: Producto[]) => {
         if (productos.length === 1 && filaSeleccionada !== null) {
@@ -82,9 +88,13 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
         setMostrarModalProductos(true);
     };
     const abrirModalCuotas = () => {
-        alert("Aquí se abrirá el modal de cuotas");
+        if (watch("formaPagoId") != 2) {
+            alert("Solo aplica para crédito");
+            return;
+        }
+        setMostrarModalCuotas(true);
     };
-    const { register, control, handleSubmit, watch, reset, setValue, formState: { errors }, } = useFacturaForm();
+    const { register, control, handleSubmit, watch, setValue, formState: { errors }, } = useFacturaForm();
     const items = watch("items") || [];
     const { subtotalCalc, igvCalc, totalCalc, igvRate } = useFacturaTotales(items);
     const { fields, append, remove } = useFieldArray({
@@ -113,12 +123,12 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
 
     useEffect(() => {
 
-        if (!tipoComprobanteId || facturaParaEditar) return;
+        if (!tipoComprobanteId) return;
 
         const id = Number(tipoComprobanteId);
         const token = useUsuarioStore.getState().token;
 
-        axios.get(`http://localhost:8080/serie/predeterminada/${id}`, {
+        axios.get(`https://springboot-facturacion-backend-production.up.railway.app/serie/predeterminada/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(res => {
@@ -136,21 +146,16 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
             })
             .catch(err => console.error("ERROR:", err));
 
-    }, [tipoComprobanteId, facturaParaEditar]);
+    }, [tipoComprobanteId]);
 
     useEffect(() => {
         const token = useUsuarioStore.getState().token;
-        axios.get("http://localhost:8080/formas-pago/listar", {
+        axios.get("https://springboot-facturacion-backend-production.up.railway.app/formas-pago/listar", {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(res => setFormasPago(res.data))
             .catch(err => console.error("Error cargando formas de pago:", err));
     }, []);
-    useEffect(() => {
-        if (facturaParaEditar) {
-            reset(facturaParaEditar);
-        }
-    }, [facturaParaEditar, reset]);
 
     const construirFacturaPayload = (
         data: FacturaForm,
@@ -163,7 +168,7 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
         return {
             tipoDocumento: data.tipo_comprobante_id,
             serie: data.serieId,
-            numero: data.numero,
+            numero: String(data.numero).padStart(8, "0"),
             moneda: data.moneda,
             tipoOperacion: data.tipoOperacion,
             fechaEmision: data.fechaEmision,
@@ -198,7 +203,7 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
                     importeTotal: totalItem,
                 };
             }),
-            cuotas: [],
+            cuotas: data.formaPagoId === 2 ? cuotas : [],
         };
     };
     const onSubmit = async (data: FacturaForm) => {
@@ -217,7 +222,7 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
             const token = useUsuarioStore.getState().token;
 
             await axios.post(
-                "http://localhost:8080/invoices/create-invoices",
+                "https://springboot-facturacion-backend-production.up.railway.app/invoices/create-invoices",
                 facturaAEnviar,
                 {
                     headers: { Authorization: `Bearer ${token}` },
@@ -235,10 +240,9 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
     };
     return (
         <div className="w-full">
-
             <form onSubmit={handleSubmit(onSubmit)}
                 className="p-4 space-y-3 text-sm flex flex-col h-full overflow-hidden" >
-                <div className="border border-slate-200 rounded-lg p-3 bg-slate-50 space-y-2">
+                <div className="border border-slate-200 rounded-xl p-3 bg-white space-y-2 shadow-sm">
                     {/* FILA 1 */}
                     <div className="flex items-end gap-2  border-slate-200 rounded-lg  bg-slate-50">
                         {/* Tipo comprobante */}
@@ -260,58 +264,47 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
                         {/* Serie */}
                         <div className="w-16">
                             <label className="label">Serie</label>
-                            <Controller
-                                name="serieNombre"
-                                control={control}
-                                render={({ field }) => (
-                                    <input
-                                        {...field}
-                                        maxLength={4}
-                                        className="input text-center"
-
-                                        onChange={async (e) => {
-                                            field.onChange(e); // mantiene sincronizado React Hook Form
-
-                                            const valor = e.target.value;
-
-                                            if (valor.length === 4) {
-                                                try {
-
-                                                    const data = await validarSerie(valor);
-
-                                                    if (!data.existe) {
-
-                                                        alert("La serie ingresada no existe. Corrija antes de continuar.");
-                                                        setValue("serieId", 0, { shouldValidate: true });
-
-                                                    } else {
-
-                                                        const idSerie = Number(data.id);
-                                                        setValue("serieId", isNaN(idSerie) ? 0 : idSerie, { shouldValidate: true });
-
-                                                    }
-
-                                                } catch (err) {
-
-                                                    console.error("Error al validar la serie:", err);
-                                                    alert("Error al validar la serie");
-
+                            <Controller name="serieNombre" control={control} render={({ field }) => (
+                                <input {...field} maxLength={4} className="input text-center"
+                                    onChange={async (e) => {
+                                        field.onChange(e); // mantiene sincronizado React Hook Form
+                                        const valor = e.target.value;
+                                        if (valor.length === 4) {
+                                            try {
+                                                const data = await validarSerie(valor);
+                                                if (!data.existe) {
+                                                    alert("La serie ingresada no existe. Corrija antes de continuar.");
+                                                    setValue("serieId", 0, { shouldValidate: true });
+                                                } else {
+                                                    const idSerie = Number(data.id);
+                                                    setValue("serieId", isNaN(idSerie) ? 0 : idSerie, { shouldValidate: true });
                                                 }
+                                            } catch (err) {
+                                                console.error("Error al validar la serie:", err);
+                                                alert("Error al validar la serie");
                                             }
-                                        }}
-
-                                        onBlur={() => {
-                                            field.onBlur(); // importante para React Hook Form
-                                        }}
-
-                                    />
-                                )}
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        field.onBlur(); // importante para React Hook Form
+                                    }}
+                                />
+                            )}
                             />
                         </div>
                         {/* Correlativo */}
                         <div className="w-24">
                             <label className="label">Correlativo</label>
-                            <input {...register("numero")} className="input text-right" />
+                            <input
+                                {...register("numero")}
+                                onBlur={(e) => {
+                                    const valor = e.target.value;
+                                    const formateado = valor.padStart(8, "0");
+
+                                    setValue("numero", formateado, { shouldValidate: true });
+                                }}
+                                className="input text-right"
+                            />
                         </div>
                         {/* Condición pago */}
                         <div className="w-40">
@@ -325,9 +318,22 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
                                         </option>
                                     ))}
                                 </select>
-                                <button type="button" onClick={abrirModalCuotas} className="btn-icon">
-                                    ➕
-                                </button>
+                                {watch("formaPagoId") == 2 && (
+                                    <button
+                                        type="button"
+                                        onClick={abrirModalCuotas}
+                                        className="btn-icon"
+                                    >
+                                        ➕
+                                    </button>
+                                )}
+                                {mostrarModalCuotas && (
+                                    <ModalCuotas
+                                        total={totalCalc}
+                                        onClose={() => setMostrarModalCuotas(false)}
+                                        onSave={(data) => setCuotas(data)}
+                                    />
+                                )}
                             </div>
                         </div>
                         {/* Fecha */}
@@ -346,7 +352,7 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
                         <div className="w-64">
                             <label className="label">Tipo operación</label>
                             <select {...register("tipoOperacion")} className="input">
-                                <option value="01">VENTA INTERNA - GRAVADA</option>
+                                <option value="0101">VENTA INTERNA - GRAVADA</option>
                             </select>
                         </div>
                         {/* IGV al final */}
@@ -374,14 +380,14 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
                     </div>
                 </div>
                 {/* DETALLE */}
-                <div className="border border-slate-200 rounded-lg flex flex-col flex-1">
+                <div className="border border-slate-200 rounded-xl bg-white shadow-sm">
                     <div className="px-4 py-2 bg-slate-50 font-medium text-slate-700">
                         Detalle de productos
                     </div>
                     {/* CABECERA */}
-                    <div className="grid grid-cols-12 text-xs font-medium text-slate-600">
+                    <div className="grid grid-cols-12 gap-2 px-1 py-1 items-center text-sm hover:bg-blue-50/40 rounded-md transition">
                         <div className="col-span-1"></div>
-                        <div className="col-span-3">Producto</div>
+                        <div className="col-span-3 ">Producto</div>
                         <div className="col-span-1 text-right">Cant</div>
                         <div className="col-span-1 text-right">Precio</div>
                         <div className="col-span-1 text-center">Und</div>
@@ -434,8 +440,8 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
                     {errors.items && (<p className="text-red-500 text-xs">Debe agregar al menos un producto</p>)}
                     {/* FOOT DETALLE */}
                     <div className="flex justify-between items-center px-4 py-2 bg-slate-50">
-                        <button type="button" onClick={eliminarSeleccionados} className="text-red-600 text-sm font-medium hover:underline"  >
-                            Eliminar detalle
+                        <button type="button" onClick={eliminarSeleccionados} className="text-red-600 px-3 py-1 rounded-lg hover:bg-red-100 transition text-sm font-medium" >
+                            Eliminar
                         </button>
                         <button type="button" onClick={() => append({
                             productoId: 0,
@@ -446,15 +452,19 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
                             cantidad: 1,
                             precioUnitario: 0,
                         })} className="btn-secondary">
-                            + Agregar producto
+                            + Agregar Detalle
                         </button>
                     </div>
                 </div>
                 {/* FOOTER */}
                 <div className="flex items-center justify-between pt-2 border-t">
                     {/* Botón izquierda */}
-                    <button type="submit" className="btn-primary">
-                        {facturaParaEditar ? "Actualizar" : "Guardar comprobante"}
+                    <button type="submit" className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-400 
+text-white px-5 py-2.5 rounded-lg shadow-lg 
+hover:from-emerald-600 hover:to-emerald-500 hover:scale-105 
+transition-all duration-300">
+                        <CheckIcon className="h-5 w-5" />
+                        {"Guardar "}
                     </button>
                     {/* Mostrar errores globales */}
                     {Object.keys(errors).length > 0 && (
@@ -471,14 +481,14 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
                     {/* Totales derecha */}
                     <div className="flex items-center gap-6 text-sm">
                         <div className="flex items-center gap-1">
-                            <span className="text-slate-500">VALOR VENTA</span>
+                            <span className="text-slate-600">VALOR VENTA :</span>
                             <span className="font-medium">  S/ {subtotalCalc.toFixed(2)}   </span>
                         </div>
                         <div className="flex items-center gap-1">
-                            <span className="text-slate-500">IGV</span>
+                            <span className="text-slate-600">IGV :</span>
                             <span className="font-medium"> S/ {igvCalc.toFixed(2)}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-base font-semibold text-slate-800">
+                        <div className="flex items-center gap-1 text-base font-semibold text-slate-900">
                             <span>TOTAL</span>
                             <span>S/ {totalCalc.toFixed(2)}</span>
                         </div>
@@ -493,7 +503,6 @@ export default function FormularioFactura({ onAfterSave, facturaParaEditar }: Pr
                 )}
                 {clienteSeleccionado && (
                     <div className="text-sm text-gray-600">
-                        Cliente seleccionado: {clienteSeleccionado.razonSocial}
                     </div>
                 )}
             </form >

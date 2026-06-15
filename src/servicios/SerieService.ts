@@ -6,7 +6,7 @@ export const validarSerie = async (serie: string) => {
     const token = useUsuarioStore.getState().token;
 
     const res = await axios.get(
-        `http://localhost:8080/serie/validar/${serie}`,
+        `https://springboot-facturacion-backend-production.up.railway.app/serie/validar/${serie}`,
         { headers: { Authorization: `Bearer ${token}` } }
     );
 

@@ -21,7 +21,7 @@ export default function ModalClientes({ onClose, onSelectCliente }: Props) {
 
   useEffect(() => {
     const token = useUsuarioStore.getState().token; 
-    axios.get("http://localhost:8080/clients/list-clients", {
+    axios.get("https://springboot-facturacion-backend-production.up.railway.app/clients/list-clients", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => {

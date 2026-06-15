@@ -4,7 +4,7 @@ import SeriesConfig from "../componentes/SeriesConfig";
 function Configuracion() {
   const [opcion, setOpcion] = useState<"series" | null>(null);
 
-  return (
+   return (
     <div className="flex gap-6">
       {/* Menú lateral */}
       <div className="w-60 border rounded-lg p-4 bg-white shadow">
@@ -12,7 +12,7 @@ function Configuracion() {
 
         <button
           onClick={() => setOpcion("series")}
-          className={`block w-full text-left px-3 py-2 rounded hover:bg-blue-50 ${
+          className={`block w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 transition ${
             opcion === "series" ? "bg-blue-100 font-semibold" : ""
           }`}
         >

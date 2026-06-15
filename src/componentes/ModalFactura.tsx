@@ -1,50 +1,51 @@
 import { useEffect, useState } from "react";
 import FormularioFactura from "./FormularioFactura";
+import type { Documento } from "../types";
+import { obtenerDocumentos } from "../servicios/documentos";
+
 
 interface ModalFacturaProps {
     onClose: () => void;
-    facturaParaEditar?: any;
 }
-type Documento = {
-    id: number;
-    nombre: string;
-};
 
-
-
-
-export default function ModalFactura({ onClose, facturaParaEditar }: ModalFacturaProps) {
+export default function ModalFactura({ onClose }: ModalFacturaProps) {
     const [documentos, setDocumentos] = useState<Documento[]>([]);
 
     useEffect(() => {
-        fetch("http://localhost:8080/documentos/listar-Documentos")
-            .then((res) => res.json())
-            .then(setDocumentos);
+        obtenerDocumentos()
+            .then((data) => setDocumentos(data))
+            .catch((err) => console.error(err));
     }, []);
+    
     return (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center animate-fadeIn">
 
-            <div className="bg-white w-full max-w-6xl h-[90vh] rounded-xl shadow-xl relative overflow-hidden">
-
+            <div className="bg-white w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl relative overflow-hidden animate-scaleIn">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-3 border-b bg-slate-50">
-                    <h2 className="font-semibold text-slate-800">
-                        {facturaParaEditar ? "Editar comprobante" : "Nuevo comprobante"}
+                <div className="relative flex items-center px-6 py-3 border-b bg-white/50 backdrop-blur-md">
+
+                    {/* Título centrado */}
+                    <h2 className="absolute left-1/2 -translate-x-1/2 font-semibold text-slate-800 text-lg">
+                        Nuevo comprobante
                     </h2>
 
-                    <button
-                        onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200"
-                    >
-                        ✕
-                    </button>
+                    {/* Botón cerrar a la derecha */}
+                    <div className="ml-auto">
+                        <button
+                            onClick={onClose}
+                            className="w-8 h-8 flex items-center justify-center rounded-full 
+                                        hover:bg-red-100 hover:text-red-600 transition">
+                            ✕
+                        </button>
+                    </div>
+
                 </div>
 
                 {/* Body scroll */}
                 <div className="p-2 h-full flex flex-col">
                     <FormularioFactura
                         onAfterSave={onClose}
-                        facturaParaEditar={facturaParaEditar}
+                        documentos={documentos}
                     />
                 </div>
 

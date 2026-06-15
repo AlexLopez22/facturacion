@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/clients";
+const API_URL = "https://springboot-facturacion-backend-production.up.railway.app/clients";
 
 export const consultarSunat = async (ruc: string) => {
   const res = await axios.get(`${API_URL}/sunat/${ruc}`);

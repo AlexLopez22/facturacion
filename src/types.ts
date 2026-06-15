@@ -1,5 +1,4 @@
 // src/types.ts
-
 export interface Cliente {
   id: number;
   numeroDocumento: string;
@@ -11,7 +10,6 @@ export interface Cliente {
   } | null;
 }
 
-
 export interface Producto {
   id: number;
   codigo: string;
@@ -19,6 +17,12 @@ export interface Producto {
   unidadMedida: string;
   afectacionIgv: string;
   estado: string;
+}
+
+export interface Documento {
+  id: number;
+  tipoDocumento: string;
+  nombre: string;
 }
 
 export interface DetalleFactura {
@@ -55,4 +59,74 @@ export interface FacturaForm {
 export interface Serie {
   id: number;
   nombreSerie: string;
+}
+
+export interface Factura {
+  id: number;
+  fecha: string;
+  documento: string; // Factura / Boleta
+  serie: string;
+  correlativo: string;
+  numeroDocumentoCliente: string; // RUC o DNI
+  clienteNombre: string;
+  igv: number;
+  total: number;
+  estado: string;
+  pdf?: string | null;
+}
+export interface Distrito {
+  codigo: string;
+  nombre: string;
+}
+
+export interface Provincia {
+  codigo: string;
+  nombre: string;
+  distritos: Distrito[];
+}
+
+export interface Departamento {
+  codigo: string;
+  nombre: string;
+  provincias: Provincia[];
+}
+
+export interface UbigeoRaw {
+  codigo: string;
+  departamento: string;
+  provincia: string;
+  distrito: string;
+}
+export type FiltrosFacturas = {
+    fechaInicio?: string;
+    fechaFin?: string;
+    tipoDocumento?: string;
+    serie?: string;
+    correlativo?: string;
+    clienteId?: number;
+};
+
+export type SerieBD = {
+  id: number;
+  nombreSerie: string;
+  idDocumentos: number;
+  predeterminada?: boolean;
+};
+
+export type SerieForm = {
+  idDocumento: string;
+  serie: string;
+  predeterminada: boolean;
+};
+
+export interface Cuota {
+    numeroCuota: number;
+    fechaVencimiento: string;
+    importe: number;
+}
+
+export interface Props {
+    onClose: () => void;
+    onSave: (cuotas: Cuota[]) => void;
+    total: number;
 }
